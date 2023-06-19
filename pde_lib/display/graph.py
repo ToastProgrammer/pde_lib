@@ -1,26 +1,34 @@
+"""
+Utilities for graphing PDE solutions.
+"""
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 def heatmap_3d(
-        position: np.ndarray,
-        temperature: np.ndarray,
-        time: np.ndarray,
+        x_vals: np.ndarray,
+        y_vals: np.ndarray,
+        z_vals: np.ndarray,
+        x_name: str = "Position",
+        y_name: str = "Time",
+        z_name: str = "Temperature",
 ) -> None:
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-    ax.plot_surface(position, temperature, time, cmap='viridis')
-    ax.set_xlabel('Position')
-    ax.set_ylabel('Temperature')
-    ax.set_zlabel('Time')
+    ax.plot_surface(x_vals, y_vals, z_vals, cmap='viridis')
+    ax.set_xlabel(x_name)
+    ax.set_ylabel(y_name)
+    ax.set_zlabel(z_name)
     plt.show()
 
 
 def linegraph(
-        position: np.ndarray,
-        temperature: np.ndarray,
-) -> None:
+        x_vals: np.ndarray,
+        y_vals: np.ndarray,
+        x_name: str = "Position",
+        y_name: str = "Temperature",
 
-    plt.plot(position, temperature)
-    plt.xlabel('Position')
-    plt.ylabel('Temperature')
+) -> None:
+    plt.plot(x_vals, y_vals)
+    plt.xlabel(x_name)
+    plt.ylabel(y_name)
     plt.show()

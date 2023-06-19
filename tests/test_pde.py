@@ -1,33 +1,31 @@
 import numpy as np
 
-from pde_lib.calculation.pde import heat_simulation, heat_simulation_comp
-from pde_lib.display.graph import heatmap_3d, linegraph
+from pde_lib.calculation.pde import solve_fw_euler
+from pde_lib.display.graph import heatmap_3d
 
 
-def test_comp():
+def test_fw_euler_3d():
     """
-    Alternate method, that generates a 3D mesh, to compare results against.
+    Test solving PDE using forward Euler method with a diffusivity constant across a 1-dimensional line over fixed time
     """
     # Constants
-    diffusivity = 0.1  # Thermal diffusivity
-    L = 1.0  # Length of the domain
-    T = 1.0  # Total time
-    n = 100  # Number of grid points
-    m = 100  # Number of time steps
+    diffusivity = 0.01  # Thermal diffusivity
+    len_total = 1.0  # Length of the domain
+    time_total = 1.0  # Total time
+    num_dx = 100  # Number of discrete position steps over 1d line
+    num_dt = 200  # Number of time steps
+
     # Initialize the temperature array and set initial condition
-    initial = np.zeros((n, m))
-    initial[:, 0] = np.sin(np.pi * np.linspace(0, 1, n))
+    initial = np.sin(2*np.pi*np.linspace(0, 1, num=num_dx+1))
+    u = solve_fw_euler(num_dx, num_dt, time_total, diffusivity, initial)
 
-    space_mesh, temperature_mesh = heat_simulation_comp(n, m, L, T, diffusivity, initial)
-    heatmap_3d(space_mesh, temperature_mesh, initial)
+    pos_arr = np.linspace(0, len_total, num=num_dx)
+    time_arr = np.linspace(0, time_total, num=num_dt)
+
+    pos_mesh, time_mesh = np.meshgrid(pos_arr, time_arr)
+
+    heatmap_3d(pos_mesh, time_mesh, u)
 
 
-def test_orig():
-    n = 100
-    dt = 1/(n**2)
-    T = 1.0
-    diffusivity_constant = 0.01
-    x = np.linspace(0, 1, num=n+1)
-    u0 = np.sin(2*np.pi*x)
-    u = heat_simulation(n, dt, T, diffusivity_constant, u0)
-    linegraph(x, u)
+if __name__ == "__main__":
+    test_fw_euler_3d()
