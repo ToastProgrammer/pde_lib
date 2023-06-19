@@ -1,61 +1,42 @@
+"""
+Functionality that involves finding solutions to Partial Differential Equations.
+"""
 from dataclasses import dataclass, field
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, Tuple, Union, Dict, Optional, Iterable
 
-"""
-Functionality that involves finding solutions to Partial Differential Equations.
-"""
 
-
-def heat_simulation(
-        n: int,
-        dt: float,
+def solve_fw_euler(
+        num_dx: int,
+        num_dt: int,
         time_total: float,
         diffusivity: float,
         initial_condition: np.ndarray
 ) -> np.ndarray:
     """
     Simulate the heat equation using the given parameters.
-    :param n: the number of discrete points over length to use
-    :param dt: difference between two adjacent, discrete points in time
+    :param num_dx: the number of discrete points over length to use
+    :param num_dt: the number of discrete time points over time_total to evaluate
     :param time_total: total period of time to solve over
     :param diffusivity: the diffusion constant
-    :param initial_condition: the initial condition to use
+    :param initial_condition: the initial values of the system
 
-    :return: the final state of the simulation
+    :return: 2-D array of the system temperature at the given spatial and time intervals
     """
-    id_matrix = np.eye(n-1)     # (n-1) x (n-1) Identity matrix
-    A = diffusivity * n**-2 * (np.eye(n-1, k=-1) + (-2)*np.eye(n-1, k=0) + np.eye(n-1, k=1))
-    B = dt*A + id_matrix
-    u = initial_condition[1:-1]     # Remove boundaries so they aren't evaluated
-    time_interval = np.int64(np.ceil(time_total/dt))
-    for _ in range(time_interval):
-        u = B @ u
-    u = np.concatenate(([0], u, [0]))   # Re-add boundaries
-    return u
+    id_matrix = np.eye(num_dx - 1)     # (n-1) x (n-1) Identity matrix
+    A = diffusivity * num_dx ** 2 * (
+            np.eye(num_dx - 1, k=-1) + (-2) * np.eye(num_dx - 1, k=0) + np.eye(num_dx - 1, k=1)
+    )
+    # B = delta_t * A + I
+    B = (time_total / num_dt) * A + id_matrix
 
+    # Inital step
+    u = np.zeros((num_dt - 1, num_dx - 1))
+    u[0] = B @ initial_condition[1:-1]
+    for time_step in range(1, num_dt-1):
+        u[time_step] = B @ u[time_step-1]
 
-def heat_simulation_comp(
-        n: int,
-        m: int,
-        length_total: float,
-        time_total: float,
-        diffusivity: float,
-        initial: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
-    # Discretization parameters
-    dx_stride = length_total / (n - 1)
-    dt_stride = time_total / m
-
-    u = initial.copy()
-
-    # Solve the heat equation using finite differences
-    for x in range(0, m - 1):
-        for i in range(1, n - 1):
-            u[i, x + 1] = u[i, x] + diffusivity * dt_stride / dx_stride**2 * (u[i - 1, x] - 2 * u[i, x] + u[i + 1, x])
-
-    # Plot the results
-    position_array = np.linspace(0, length_total, n)
-    temperature_array = np.linspace(0, time_total, m)
-    return np.meshgrid(position_array, temperature_array)
+    retval = np.zeros((num_dt, num_dx))
+    retval[1:, 1:] = u
+    return retval
